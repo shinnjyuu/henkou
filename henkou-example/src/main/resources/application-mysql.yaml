@@ -1,0 +1,5 @@
+spring:
+  datasource:
+    url: ${HENKOU_MYSQL_URL}
+    username: ${HENKOU_MYSQL_USER}
+    password: ${HENKOU_MYSQL_PASSWORD}

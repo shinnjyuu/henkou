@@ -1,0 +1,48 @@
+name: Verify
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify (${{ matrix.database }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        database: [h2, mysql]
+    services:
+      mysql:
+        image: ${{ matrix.database == 'mysql' && 'mysql:8.4' || '' }}
+        env:
+          MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
+          MYSQL_DATABASE: henkou
+          MYSQL_USER: henkou
+          MYSQL_PASSWORD: henkou-ci-test
+        ports:
+          - '3306'
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+      - name: Verify with H2
+        if: matrix.database == 'h2'
+        run: sh ./mvnw --batch-mode --no-transfer-progress verify
+      - name: Verify with MySQL 8.4
+        if: matrix.database == 'mysql'
+        env:
+          HENKOU_MYSQL_URL: jdbc:mysql://127.0.0.1:${{ job.services.mysql.ports['3306'] }}/henkou
+          HENKOU_MYSQL_USER: henkou
+          HENKOU_MYSQL_PASSWORD: henkou-ci-test
+        run: sh ./mvnw --batch-mode --no-transfer-progress -Pmysql verify

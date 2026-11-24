@@ -1,0 +1,7 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:henkou;MODE=MySQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+  flyway:
+    locations: classpath:db/migration,classpath:META-INF/henkou/db/migration

@@ -1,0 +1,3 @@
+io.github.shinnjyuu.henkou.spring.AuditWebAutoConfiguration
+io.github.shinnjyuu.henkou.spring.AuditStoreAutoConfiguration
+io.github.shinnjyuu.henkou.spring.AuditRecorderAutoConfiguration
