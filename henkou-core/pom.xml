@@ -6,9 +6,11 @@
     <parent>
         <groupId>io.github.shinnjyuu</groupId>
         <artifactId>henkou</artifactId>
-        <version>0.1.0-SNAPSHOT</version>
+        <version>1.0.0</version>
     </parent>
     <artifactId>henkou-core</artifactId>
+    <name>henkou Core</name>
+    <description>Audit policies, snapshots, and field changes for Java applications</description>
 
     <dependencies>
         <dependency>
@@ -17,4 +19,22 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

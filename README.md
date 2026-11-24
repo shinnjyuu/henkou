@@ -12,7 +12,7 @@ henkou 是一个 Java 数据变更审计框架，让每个业务入口明确声�
 
 ```sh
 sh ./mvnw verify
-java -jar henkou-example/target/henkou-example-0.1.0-SNAPSHOT-exec.jar
+java -jar henkou-example/target/henkou-example-1.0.0-exec.jar
 ```
 
 Windows 可用 `.\mvnw.cmd verify`。示例启动后，创建一个角色，再将返回的 `id` 填到更新路径中。
@@ -37,13 +37,13 @@ curl -X PUT http://localhost:8080/roles/ROLE_ID/permissions \
 
 #### 引入 Starter 并创建审计表
 
-在 henkou 根目录运行 `sh ./mvnw -pl henkou-spring-boot-starter -am install`，然后在使用 Spring Boot 4.2、Spring MVC 和 JDBC 的应用中加入依赖。
+在使用 Spring Boot 4.2、Spring MVC 和 JDBC 的应用中加入以下依赖。用当前源码联调时，先在 henkou 根目录运行 `sh ./mvnw -pl henkou-spring-boot-starter -am install`。
 
 ```xml
 <dependency>
     <groupId>io.github.shinnjyuu</groupId>
     <artifactId>henkou-spring-boot-starter</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
 </dependency>
 ```
 
@@ -119,6 +119,12 @@ class AuditCoverageIT {
 
 在 MySQL 8.4 中准备一个空的测试数据库和具备迁移权限的测试用户。设置 `HENKOU_MYSQL_URL`、`HENKOU_MYSQL_USER` 和 `HENKOU_MYSQL_PASSWORD`，运行 `sh ./mvnw -Pmysql verify`。集成测试会清理示例业务表和审计表中的数据。CI 为 H2 和 MySQL 8.4 各运行一遍相同的验收。
 
+### 发布到 Maven Central
+
+在 GitHub Actions Secrets 设置 `CENTRAL_TOKEN_USERNAME`、`CENTRAL_TOKEN_PASSWORD`、`GPG_PRIVATE_KEY` 和 `GPG_PASSPHRASE`。发布与 POM 版本匹配的 GitHub Release，例如 `v1.0.0`。工作流会用 H2 和 MySQL 验收，再签署并上传父 POM、核心库和 Starter。Central 校验通过后自动发布。
+
+本地可以运行 `sh ./mvnw -Prelease -pl henkou-spring-boot-starter -am clean deploy` 演练签名和打包。该命令默认生成本地 `central-bundle.zip`。签名使用本机 GPG 密钥，批处理签名的口令通过 `MAVEN_GPG_PASSPHRASE` 提供。
+
 ### 许可证
 
 本项目采用 [MIT 许可证](LICENSE)。
@@ -135,7 +141,7 @@ Use JDK 25. The example uses H2 by default. The Maven Wrapper runs the unit and 
 
 ```sh
 sh ./mvnw verify
-java -jar henkou-example/target/henkou-example-0.1.0-SNAPSHOT-exec.jar
+java -jar henkou-example/target/henkou-example-1.0.0-exec.jar
 ```
 
 On Windows, use `.\mvnw.cmd verify`. Once the example is running, create a role and use the returned `id` in the update URL.
@@ -160,13 +166,13 @@ The second request writes an `UPDATE` entry to `henkou_audit_log`. Its `changes_
 
 #### Add the Starter and create the audit table
 
-Run `sh ./mvnw -pl henkou-spring-boot-starter -am install` from the henkou root, then add the dependency to an application that uses Spring Boot 4.2, Spring MVC, and JDBC.
+Add the following dependency to an application that uses Spring Boot 4.2, Spring MVC, and JDBC. To test a local source checkout, first run `sh ./mvnw -pl henkou-spring-boot-starter -am install` from the henkou root.
 
 ```xml
 <dependency>
     <groupId>io.github.shinnjyuu</groupId>
     <artifactId>henkou-spring-boot-starter</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
 </dependency>
 ```
 
@@ -241,6 +247,12 @@ Run `sh ./mvnw verify`. The report lists the HTTP method, path, and controller m
 ### Verify with MySQL 8.4
 
 Prepare an empty MySQL 8.4 test database and a test user with migration privileges. Set `HENKOU_MYSQL_URL`, `HENKOU_MYSQL_USER`, and `HENKOU_MYSQL_PASSWORD`, then run `sh ./mvnw -Pmysql verify`. The integration tests clear data from the example's business and audit tables. CI runs the same tests against H2 and MySQL 8.4.
+
+### Publish to Maven Central
+
+Set `CENTRAL_TOKEN_USERNAME`, `CENTRAL_TOKEN_PASSWORD`, `GPG_PRIVATE_KEY`, and `GPG_PASSPHRASE` in GitHub Actions Secrets. Publish a GitHub Release whose tag matches the POM version, such as `v1.0.0`. The workflow verifies H2 and MySQL, then signs and uploads the parent POM, core library, and Starter. Maven Central publishes them after validation.
+
+To rehearse signing and packaging locally, run `sh ./mvnw -Prelease -pl henkou-spring-boot-starter -am clean deploy`. By default this command produces a local `central-bundle.zip`. Signing uses your local GPG key. Supply the passphrase for batch signing through `MAVEN_GPG_PASSPHRASE`.
 
 ### License
 

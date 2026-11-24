@@ -1,0 +1,56 @@
+name: Release to Maven Central
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: central-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    if: ${{ !github.event.release.prerelease }}
+    uses: ./.github/workflows/verify.yml
+
+  publish:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Check the release tag
+        run: |
+          python3 - <<'PY'
+          import os
+          import re
+          import xml.etree.ElementTree as etree
+
+          version = etree.parse("pom.xml").findtext("{*}version", default="")
+          tag = os.environ["GITHUB_REF_NAME"]
+          if not re.fullmatch(r"\d+\.\d+\.\d+", version) or tag != f"v{version}":
+              raise SystemExit(f"Release tag {tag!r} must match the Maven release version {version!r}.")
+          PY
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+          server-id: central-publishing
+          server-username-env-var: CENTRAL_TOKEN_USERNAME
+          server-password-env-var: CENTRAL_TOKEN_PASSWORD
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-passphrase-env-var: GPG_PASSPHRASE
+      - name: Publish to Maven Central
+        env:
+          CENTRAL_TOKEN_USERNAME: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
+          CENTRAL_TOKEN_PASSWORD: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          : "${CENTRAL_TOKEN_USERNAME:?Set the CENTRAL_TOKEN_USERNAME repository secret}"
+          : "${CENTRAL_TOKEN_PASSWORD:?Set the CENTRAL_TOKEN_PASSWORD repository secret}"
+          sh ./mvnw --batch-mode --no-transfer-progress -Prelease -Dcentral.skipUpload=false -pl henkou-spring-boot-starter -am clean deploy
